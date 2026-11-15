@@ -314,10 +314,10 @@ async function loadOrders(reset = true) {
 }
 function autoFocus() {
   if (!focusOrder || autoDone) return;
-  const i = sheets.findIndex((s) => numId(s.ord.id) === focusOrder && (!focusLi || numId(s.li.id) === focusLi));
-  if (i < 0) { if (cursor) loadOrders(false); return; }
+  const idx = sheets.map((s, i) => [s, i]).filter(([s]) => numId(s.ord.id) === focusOrder && (!focusLi || numId(s.li.id) === focusLi)).map(([, i]) => i);
+  if (!idx.length) { if (cursor) loadOrders(false); return; }
   autoDone = true; $("orders").scrollIntoView({ behavior: "smooth", block: "start" });
-  const b = document.querySelector(`[data-dl="${i}"]`); if (b) exportSheet(i, b);
+  (async () => { for (const i of idx) { const b = document.querySelector(`[data-dl="${i}"]`); if (b) await exportSheet(i, b); } })();
 }
 function statusOf(s) {
   const p = prod[s.li.id] || {};
