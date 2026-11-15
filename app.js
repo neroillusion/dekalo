@@ -34,7 +34,7 @@ const L = {
     w: "Ancho (in)", h: "Largo (in)", p: "Precio", create: "Crear producto", creating: "Creando…", addRow: "+ Tamaño", edit: "Editar producto",
     ordersT: "Producción", ordersS: "Tus gang sheets vendidas. Descarga cada hoja a 300 DPI y márcala cuando la imprimas.", kPend: "Hojas por imprimir", kFilm: "Film necesario", kDes: "Diseños por imprimir", fTodo: "Por imprimir", fHecho: "Impresas", search: "Buscar orden #", vGrid: "Cuadrícula", vList: "Lista", stNew: "Nueva", stDown: "Descargada", stPrinted: "Impresa", stShip: "Enviada", mark: "Marcar como impresa", unmark: "Volver a pendiente", markedP: "Hoja marcada como impresa", markedU: "Hoja de vuelta en pendientes", openOrder: "Ver orden en Shopify", allDone: "¡Todo al día!", allDoneS: "No tienes hojas por imprimir. Las nuevas aparecerán aquí.", noneDone: "Todavía no hay hojas impresas", noneDoneS: "Cuando marques una hoja como impresa, aparecerá aquí.", noMatch: "No hay órdenes con ese número", pending: "Pendientes", all: "Todas", refresh: "Actualizar", more: "Cargar más",
     none: "Todavía no hay hojas por imprimir", noneS: "Cuando un cliente compre una gang sheet, aparecerá aquí lista para descargar.",
-    designs: "diseños", qty: "Cantidad", download: "Descargar PNG 300 DPI", files: "Archivos", generating: "Generando…", done: "Listo",
+    designs: "diseños", qty: "Cantidad", download: "Descargar PNG 300 DPI", files: "Archivos", generating: "Generando…", done: "Listo", saveB: "Guardar PNG en tu computadora", saveT: "Hoja lista: toca «Guardar PNG» si no se descargó sola",
     corsErr: "No se pudo leer un archivo del pedido. Abre los archivos y descárgalos manualmente.", apiErr: "No se pudo conectar con Shopify:",
     unfulfilled: "Sin preparar", fulfilled: "Preparado", partial: "Parcial", charged: "Comisión",
     helpT: "Preguntas frecuentes", q1: "¿Dónde quedan los archivos de mis clientes?", a1: "Shopify los guarda con cada orden, igual que cualquier archivo subido en la página de producto. Dekalo no los guarda en ningún servidor.",
@@ -63,7 +63,7 @@ const L = {
     w: "Width (in)", h: "Length (in)", p: "Price", create: "Create product", creating: "Creating…", addRow: "+ Size", edit: "Edit product",
     ordersT: "Production", ordersS: "Your sold gang sheets. Download each sheet at 300 DPI and mark it when printed.", kPend: "Sheets to print", kFilm: "Film needed", kDes: "Designs to print", fTodo: "To print", fHecho: "Printed", search: "Search order #", vGrid: "Grid", vList: "List", stNew: "New", stDown: "Downloaded", stPrinted: "Printed", stShip: "Shipped", mark: "Mark as printed", unmark: "Back to pending", markedP: "Sheet marked as printed", markedU: "Sheet back in pending", openOrder: "Open order in Shopify", allDone: "All caught up!", allDoneS: "No sheets to print. New ones will show up here.", noneDone: "No printed sheets yet", noneDoneS: "When you mark a sheet as printed, it shows up here.", noMatch: "No orders with that number", pending: "Pending", all: "All", refresh: "Refresh", more: "Load more",
     none: "No sheets to print yet", noneS: "When a customer buys a gang sheet, it will show up here ready to download.",
-    designs: "designs", qty: "Quantity", download: "Download 300 DPI PNG", files: "Files", generating: "Generating…", done: "Done",
+    designs: "designs", qty: "Quantity", download: "Download 300 DPI PNG", files: "Files", generating: "Generating…", done: "Done", saveB: "Save PNG to your computer", saveT: "Sheet ready: tap «Save PNG» if it didn't download",
     corsErr: "Couldn't read a file from the order. Open the files and download them manually.", apiErr: "Couldn't connect to Shopify:",
     unfulfilled: "Unfulfilled", fulfilled: "Fulfilled", partial: "Partial", charged: "Fee",
     helpT: "FAQ", q1: "Where are my customers' files stored?", a1: "Shopify stores them with each order, like any file uploaded on a product page. Dekalo doesn't store them on any server.",
@@ -257,6 +257,7 @@ async function chargeSheet(s) {
 }
 
 /* ---------- producción (órdenes con gang sheets) ---------- */
+const ready = {};
 let filter = "todo", cursor = null, sheets = [], view = "grid", query = "", prod = {}, prodLoaded = false;
 const isPrinted = (s) => !!(prod[s.li.id] && prod[s.li.id].p) || s.ord.displayFulfillmentStatus === "FULFILLED";
 const isPending = (s) => !isPrinted(s);
@@ -355,7 +356,7 @@ function sheetCard(s, i) {
    <div class="meta"><div class="t"><a href="#" data-order="${numId(s.ord.id)}">${esc(s.ord.name)}</a><span class="tag ${st[0]}">${st[1]}</span></div>
    <div class="mu">${ago(s.ord.createdAt)} · ${s.lay.i.length} ${t("designs")} · ${money(s.total)}${b ? ` · ${t("charged")} ${money(b.f)}` : ""}</div>
    ${thumbs(s)}
-   <div class="prog" id="pg${i}"><i></i></div><div class="err" id="er${i}"></div>
+   <div class="prog" id="pg${i}"><i></i></div><div class="err" id="er${i}"></div>${saveLink(s)}
    <div class="acts"><button class="btn pri grow" data-dl="${i}">${ICO.dl} ${t("download")}</button><button class="btn icon ${pr ? "on" : ""}" data-pr="${i}" title="${pr ? t("unmark") : t("mark")}" aria-label="${pr ? t("unmark") : t("mark")}">${ICO.ok}</button><button class="btn icon" data-order="${numId(s.ord.id)}" title="${t("openOrder")}" aria-label="${t("openOrder")}">${ICO.ext}</button></div></div></div>`;
 }
 function sheetRow(s, i) {
@@ -365,8 +366,9 @@ function sheetRow(s, i) {
    <span class="tag ${st[0]}">${st[1]}</span>
    <button class="btn pri" data-dl="${i}">${ICO.dl}<span class="hide-s">${t("download")}</span></button>
    <button class="btn icon ${pr ? "on" : ""}" data-pr="${i}" title="${pr ? t("unmark") : t("mark")}" aria-label="${pr ? t("unmark") : t("mark")}">${ICO.ok}</button>
-   <div class="prog" id="pg${i}"><i></i></div><div class="err" id="er${i}"></div></div>`;
+   <div class="prog" id="pg${i}"><i></i></div><div class="err" id="er${i}"></div>${saveLink(s)}</div>`;
 }
+function saveLink(s) { const r = ready[s.li.id]; return r ? `<a class="btn ok-save" href="${r.url}" download="${esc(r.name)}">${ICO.dl} ${t("saveB")}</a>` : ""; }
 document.addEventListener("click", (e) => {
   const o = e.target.closest("[data-order]"); if (o) { e.preventDefault(); goAdmin(`orders/${o.dataset.order}`); return; }
   const d = e.target.closest("[data-dl]"); if (d) { exportSheet(+d.dataset.dl, d); return; }
@@ -421,9 +423,9 @@ async function exportSheet(i, btn) {
       x.setTransform(1, 0, 0, 1, 0, 0); return x.getImageData(0, 0, W, hh).data;
     }, (p) => { bar.style.width = Math.round(p * 100) + "%"; });
     const name = `${s.ord.name.replace(/[^\w-]/g, "")}_${w}x${h}in_300dpi${s.li.quantity > 1 ? "_x" + s.li.quantity : ""}.png`;
-    const a = document.createElement("a"); a.href = URL.createObjectURL(blob); a.download = name; document.body.appendChild(a); a.click(); a.remove();
-    setTimeout(() => URL.revokeObjectURL(a.href), 60000);
-    toast(`${t("done")}: ${name}`);
+    const url = URL.createObjectURL(blob); if (ready[s.li.id]) URL.revokeObjectURL(ready[s.li.id].url); ready[s.li.id] = { url, name };
+    try { const a = document.createElement("a"); a.href = url; a.download = name; document.body.appendChild(a); a.click(); a.remove(); } catch (er2) {}
+    toast(t("saveT"));
     chargeSheet(s);
     markProd(s, "d");
   } catch (e) {
