@@ -7,12 +7,12 @@ const TAG = "dekalo";
 const BLOCK = "gang-sheet-builder";
 // Handle del listado en la App Store (lo da Shopify al crear el listado). Si cambia, actualízalo aquí.
 const APP_HANDLE = "dekalo";
-// Plan Gratis: comisión por hoja descargada (la mitad que la competencia, con tope por pedido).
-const FEE_RATE = 0.015, FEE_CAP = 5;
+// Plan Gratis: comisión por hoja descargada (menos que la competencia).
+const FEE_RATE = 0.02;
 // Dirección del puente de cobro por uso (App Events API). Vacío = solo se registra en el panel.
 const USAGE_ENDPOINT = "";
 const PLANS = [
-  { key: "free", m: 0, y: 0, feats: ["builder", "arrange", "dpi", "png", "sizesU", "d3", "bg", "text", "fee", "wm"] },
+  { key: "free", m: 0, y: 0, feats: ["builder", "arrange", "dpi", "png", "sizesU", "bg", "text", "fee", "wm"] },
   { key: "pro", m: 19.99, y: 199, best: true, feats: ["allFree", "nofee", "nowm", "custom", "support"] },
   { key: "taller", m: 39.99, y: 399, feats: ["all", "nofee", "white", "batch", "setup", "priority"] },
 ];
@@ -26,7 +26,7 @@ const L = {
     welcome: "Te damos la bienvenida a Dekalo. Tus clientes arman sus hojas en tu tienda y tú recibes el archivo listo para imprimir.",
     welcomeDone: "Todo está listo. Aquí tienes tus hojas por imprimir y cómo va tu negocio.",
     progress: "pasos listos", stPend: "Hojas por imprimir", stSold: "Ventas en hojas (30 días)", stFee: "Comisión Dekalo este mes", stPlan: "Tu plan",
-    feeNote: "1.5% por hoja · máx. $5 por pedido", noFee: "Sin comisión",
+    feeNote: "2% por hoja vendida", noFee: "Sin comisión",
     setupT: "Configura en 3 pasos", setupS: "Toma menos de 5 minutos. Puedes volver aquí cuando quieras.",
     s1: "Crea el producto Gang Sheet", s1t: "Cada variante es un tamaño de hoja con su precio. Puedes cambiar los precios después en Shopify.", s1done: "Producto listo:",
     s2: "Pon el builder en tu tienda", s2t: "Abre el editor de temas con el bloque ya añadido. Solo dale Guardar.", s2b: "Abrir editor de temas",
@@ -41,13 +41,13 @@ const L = {
     q2: "¿Cómo cambio tamaños o precios?", a2: "Edita las variantes del producto Gang Sheet. El nombre de cada variante debe tener la medida, por ejemplo: 22 x 24.",
     q3: "¿Puedo cambiar colores, textos y funciones del builder?", a3: "Sí. En el editor de temas, selecciona el bloque Dekalo Gang Sheet y cambia sus ajustes.",
     q4: "¿Qué formato es el archivo de impresión?", a4: "PNG con fondo transparente a 300 DPI, del tamaño exacto de la hoja, listo para tu software RIP.",
-    q5: "¿Cómo funciona la comisión del plan Gratis?", a5: "Solo pagas cuando vendes: 1.5% del valor de cada gang sheet que descargas para imprimir, con un máximo de $5 por pedido. Shopify lo cobra en tu factura. Si vendes más de unos $1,300 al mes en hojas, el plan Pro te sale más barato.",
+    q5: "¿Cómo funciona la comisión del plan Gratis?", a5: "Solo pagas cuando vendes: 2% del valor de cada gang sheet que descargas para imprimir. Shopify lo cobra en tu factura. Si vendes más de unos $1,000 al mes en hojas, el plan Pro te sale más barato.",
     planT: "Planes", planS: "Shopify cobra en tu factura de siempre. Cambia o cancela cuando quieras.", current: "Tu plan", choose: "Ver y cambiar planes", month: "/mes", year: "/año", save2: "2 meses gratis", trial: "14 días gratis", best: "Más popular",
     payAsYouSell: "Paga solo cuando vendes", nm_free: "Gratis", nm_pro: "Pro", nm_taller: "Taller",
-    f_builder: "Builder en tu página de producto", f_arrange: "Acomodo automático y hoja más barata", f_dpi: "Alertas de calidad (DPI y fondo)", f_png: "PNG 300 DPI listo para imprimir", f_sizesU: "Tamaños de hoja ilimitados", f_d3: "Vista 3D (camiseta, taza, tote, film)", f_bg: "Quitar fondo con un clic", f_text: "Herramienta de texto con fuentes",
-    f_fee: "1.5% por hoja vendida (máx. $5 por pedido)", f_wm: "Marca pequeña «Hecho con Dekalo»", f_allFree: "Todo lo del plan Gratis", f_nofee: "0% de comisión", f_nowm: "Sin marca de agua", f_custom: "Colores y textos personalizados", f_support: "Soporte por email",
+    f_builder: "Builder en tu página de producto", f_arrange: "Acomodo automático y hoja más barata", f_dpi: "Alertas de calidad (DPI y fondo)", f_png: "PNG 300 DPI listo para imprimir", f_sizesU: "Tamaños de hoja ilimitados", f_bg: "Quitar fondo con un clic", f_text: "Herramienta de texto con fuentes",
+    f_fee: "2% por hoja vendida", f_wm: "Marca pequeña «Hecho con Dekalo»", f_allFree: "Todo lo del plan Gratis", f_nofee: "0% de comisión", f_nowm: "Sin marca de agua", f_custom: "Colores y textos personalizados", f_support: "Soporte por email",
     f_all: "Todo lo del plan Pro", f_white: "Marca blanca: sin Dekalo en ningún lado", f_batch: "Descargar todas las hojas pendientes", f_setup: "Configuración hecha por Nero Illusion", f_priority: "Soporte prioritario",
-    compare: "La competencia cobra 3% a 5% por pedido. Dekalo cobra 1.5%.",
+    compare: "La competencia cobra 3% a 5% por pedido. Dekalo cobra 2%.",
     batch: "Descargar todas", batchOnly: "Descarga en lote: plan Taller", contactT: "¿Necesitas ayuda?", contactS: "El equipo de Nero Illusion te ayuda a configurar tu tienda.", contactB: "Escribir a soporte",
   },
   en: {
@@ -55,7 +55,7 @@ const L = {
     welcome: "Welcome to Dekalo. Your customers build their sheets in your store and you get a print-ready file.",
     welcomeDone: "You're all set. Here are your sheets to print and how your business is doing.",
     progress: "steps done", stPend: "Sheets to print", stSold: "Sheet sales (30 days)", stFee: "Dekalo fee this month", stPlan: "Your plan",
-    feeNote: "1.5% per sheet · max $5 per order", noFee: "No fees",
+    feeNote: "2% per sheet sold", noFee: "No fees",
     setupT: "Set up in 3 steps", setupS: "Takes less than 5 minutes. Come back anytime.",
     s1: "Create the Gang Sheet product", s1t: "Each variant is a sheet size with its price. You can change prices later in Shopify.", s1done: "Product ready:",
     s2: "Add the builder to your store", s2t: "Opens the theme editor with the block already added. Just click Save.", s2b: "Open theme editor",
@@ -70,13 +70,13 @@ const L = {
     q2: "How do I change sizes or prices?", a2: "Edit the Gang Sheet product variants. Each variant name must include the size, for example: 22 x 24.",
     q3: "Can I change the builder's colors, texts and features?", a3: "Yes. In the theme editor, select the Dekalo Gang Sheet block and change its settings.",
     q4: "What format is the print file?", a4: "Transparent PNG at 300 DPI, at the exact sheet size, ready for your RIP software.",
-    q5: "How does the Free plan fee work?", a5: "You only pay when you sell: 1.5% of each gang sheet you download to print, capped at $5 per order. Shopify bills it on your invoice. If you sell more than about $1,300 a month in sheets, Pro is cheaper.",
+    q5: "How does the Free plan fee work?", a5: "You only pay when you sell: 2% of each gang sheet you download to print. Shopify bills it on your invoice. If you sell more than about $1,000 a month in sheets, Pro is cheaper.",
     planT: "Plans", planS: "Shopify bills you on your usual invoice. Change or cancel anytime.", current: "Your plan", choose: "View and change plans", month: "/mo", year: "/yr", save2: "2 months free", trial: "14-day free trial", best: "Most popular",
     payAsYouSell: "Pay only when you sell", nm_free: "Free", nm_pro: "Pro", nm_taller: "Shop",
-    f_builder: "Builder on your product page", f_arrange: "Auto-arrange and cheapest sheet", f_dpi: "Quality alerts (DPI and background)", f_png: "Print-ready 300 DPI PNG", f_sizesU: "Unlimited sheet sizes", f_d3: "3D view (tee, mug, tote, film)", f_bg: "One-click background removal", f_text: "Text tool with fonts",
-    f_fee: "1.5% per sheet sold (max $5 per order)", f_wm: "Small «Made with Dekalo» badge", f_allFree: "Everything in Free", f_nofee: "0% fees", f_nowm: "No watermark", f_custom: "Custom colors and texts", f_support: "Email support",
+    f_builder: "Builder on your product page", f_arrange: "Auto-arrange and cheapest sheet", f_dpi: "Quality alerts (DPI and background)", f_png: "Print-ready 300 DPI PNG", f_sizesU: "Unlimited sheet sizes", f_bg: "One-click background removal", f_text: "Text tool with fonts",
+    f_fee: "2% per sheet sold", f_wm: "Small «Made with Dekalo» badge", f_allFree: "Everything in Free", f_nofee: "0% fees", f_nowm: "No watermark", f_custom: "Custom colors and texts", f_support: "Email support",
     f_all: "Everything in Pro", f_white: "White label: no Dekalo anywhere", f_batch: "Download all pending sheets", f_setup: "Setup done for you by Nero Illusion", f_priority: "Priority support",
-    compare: "Other apps charge 3% to 5% per order. Dekalo charges 1.5%.",
+    compare: "Other apps charge 3% to 5% per order. Dekalo charges 2%.",
     batch: "Download all", batchOnly: "Batch download: Shop plan", contactT: "Need help?", contactS: "The Nero Illusion team helps you set up your store.", contactB: "Contact support",
   },
 };
@@ -174,7 +174,7 @@ async function createProduct() {
     const d = await gql(`mutation($input:ProductSetInput!){productSet(synchronous:true,input:$input){product{id} userErrors{field message}}}`, {
       input: {
         title: "DTF Gang Sheet", status: "ACTIVE", productType: "DTF Gang Sheet", tags: [TAG],
-        descriptionHtml: lang === "es" ? "<p>Arma tu gang sheet: sube tus diseños, acomódalos y míralos en 3D.</p>" : "<p>Build your gang sheet: upload your designs, arrange them and preview in 3D.</p>",
+        descriptionHtml: lang === "es" ? "<p>Arma tu gang sheet: sube tus diseños y los acomodamos para ahorrar film.</p>" : "<p>Build your gang sheet: upload your designs and we arrange them to save film.</p>",
         productOptions: [{ name: optName, values: names.map((n) => ({ name: n })) }],
         variants: clean.map((s, i) => ({ optionValues: [{ optionName: optName, name: names[i] }], price: (+s.p).toFixed(2), inventoryPolicy: "CONTINUE" })),
       },
@@ -220,7 +220,7 @@ function renderPlan() {
    <div class="plans">${PLANS.map((p) => `<div class="pl ${p.key === plan ? "on" : ""} ${p.best ? "best" : ""}">
      <div class="pl-h"><b>${t("nm_" + p.key)}</b>${p.key === plan ? `<span class="tag ok">${t("current")}</span>` : p.best ? `<span class="tag dark">${t("best")}</span>` : ""}</div>
      <div class="pl-p">${p.m ? `<span class="big">$${p.m}</span>${t("month")}<div class="mu">$${p.y}${t("year")} · ${t("save2")}</div>` : `<span class="big">$0</span>${t("month")}<div class="mu">${t("payAsYouSell")}</div>`}</div>
-     ${p.m ? `<div class="tag" style="margin-bottom:10px">${t("trial")}</div>` : `<div class="tag" style="margin-bottom:10px">1.5%</div>`}
+     ${p.m ? `<div class="tag" style="margin-bottom:10px">${t("trial")}</div>` : `<div class="tag" style="margin-bottom:10px">2%</div>`}
      <ul>${p.feats.map((f) => `<li class="${f === "wm" || f === "fee" ? "neg" : ""}">${t("f_" + f)}</li>`).join("")}</ul></div>`).join("")}</div>
    <div class="compare">${t("compare")}</div>
    <div class="row" style="margin-top:12px"><button class="btn pri" id="changePlan">${t("choose")}</button></div>`;
@@ -239,8 +239,7 @@ async function exportAll(btn) {
  * Si hay un puente de cobro configurado (USAGE_ENDPOINT), se envía el evento a Shopify App Pricing. */
 async function chargeSheet(s) {
   if (plan !== "free" || !instId || billed[s.li.id]) return;
-  const ordFee = Object.values(billed).filter((b) => b.o === s.ord.id).reduce((a, b) => a + b.f, 0);
-  const fee = Math.max(0, Math.min(s.total * FEE_RATE, FEE_CAP - ordFee));
+  const fee = Math.max(0, s.total * FEE_RATE);
   billed[s.li.id] = { f: Math.round(fee * 100) / 100, t: Date.now(), o: s.ord.id };
   const cut = Date.now() - 120 * 864e5; for (const k in billed) if (billed[k].t < cut) delete billed[k];
   try {
