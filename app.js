@@ -34,7 +34,7 @@ const L = {
     w: "Ancho (in)", h: "Largo (in)", p: "Precio", create: "Crear producto", creating: "Creando…", addRow: "+ Tamaño", edit: "Editar producto",
     ordersT: "Producción", ordersS: "Tus gang sheets vendidas. Descarga cada hoja a 300 DPI y márcala cuando la imprimas.", kPend: "Hojas por imprimir", kFilm: "Film necesario", kDes: "Diseños por imprimir", fTodo: "Por imprimir", fHecho: "Impresas", search: "Buscar orden #", vGrid: "Cuadrícula", vList: "Lista", stNew: "Nueva", stDown: "Descargada", stPrinted: "Impresa", stShip: "Enviada", mark: "Marcar como impresa", unmark: "Volver a pendiente", markedP: "Hoja marcada como impresa", markedU: "Hoja de vuelta en pendientes", openOrder: "Ver orden en Shopify", allDone: "¡Todo al día!", allDoneS: "No tienes hojas por imprimir. Las nuevas aparecerán aquí.", noneDone: "Todavía no hay hojas impresas", noneDoneS: "Cuando marques una hoja como impresa, aparecerá aquí.", noMatch: "No hay órdenes con ese número", pending: "Pendientes", all: "Todas", refresh: "Actualizar", more: "Cargar más",
     none: "Todavía no hay hojas por imprimir", noneS: "Cuando un cliente compre una gang sheet, aparecerá aquí lista para descargar.",
-    designs: "diseños", qty: "Cantidad", download: "Descargar PNG 300 DPI", files: "Archivos", generating: "Generando…", done: "Listo", saveB: "Guardar PNG en tu computadora", saveT: "Hoja lista: toca «Guardar PNG» si no se descargó sola",
+    designs: "diseños", qty: "Cantidad", download: "Descargar PNG 300 DPI", files: "Archivos", generating: "Generando…", done: "Listo", saveB: "Guardar PNG en tu computadora", focusT: "Mostrando la orden", focusAll: "Ver todas", saveT: "Hoja lista: toca «Guardar PNG» si no se descargó sola",
     corsErr: "No se pudo leer un archivo del pedido. Abre los archivos y descárgalos manualmente.", apiErr: "No se pudo conectar con Shopify:",
     unfulfilled: "Sin preparar", fulfilled: "Preparado", partial: "Parcial", charged: "Comisión",
     helpT: "Preguntas frecuentes", q1: "¿Dónde quedan los archivos de mis clientes?", a1: "Shopify los guarda con cada orden, igual que cualquier archivo subido en la página de producto. Dekalo no los guarda en ningún servidor.",
@@ -63,7 +63,7 @@ const L = {
     w: "Width (in)", h: "Length (in)", p: "Price", create: "Create product", creating: "Creating…", addRow: "+ Size", edit: "Edit product",
     ordersT: "Production", ordersS: "Your sold gang sheets. Download each sheet at 300 DPI and mark it when printed.", kPend: "Sheets to print", kFilm: "Film needed", kDes: "Designs to print", fTodo: "To print", fHecho: "Printed", search: "Search order #", vGrid: "Grid", vList: "List", stNew: "New", stDown: "Downloaded", stPrinted: "Printed", stShip: "Shipped", mark: "Mark as printed", unmark: "Back to pending", markedP: "Sheet marked as printed", markedU: "Sheet back in pending", openOrder: "Open order in Shopify", allDone: "All caught up!", allDoneS: "No sheets to print. New ones will show up here.", noneDone: "No printed sheets yet", noneDoneS: "When you mark a sheet as printed, it shows up here.", noMatch: "No orders with that number", pending: "Pending", all: "All", refresh: "Refresh", more: "Load more",
     none: "No sheets to print yet", noneS: "When a customer buys a gang sheet, it will show up here ready to download.",
-    designs: "designs", qty: "Quantity", download: "Download 300 DPI PNG", files: "Files", generating: "Generating…", done: "Done", saveB: "Save PNG to your computer", saveT: "Sheet ready: tap «Save PNG» if it didn't download",
+    designs: "designs", qty: "Quantity", download: "Download 300 DPI PNG", files: "Files", generating: "Generating…", done: "Done", saveB: "Save PNG to your computer", focusT: "Showing order", focusAll: "See all", saveT: "Sheet ready: tap «Save PNG» if it didn't download",
     corsErr: "Couldn't read a file from the order. Open the files and download them manually.", apiErr: "Couldn't connect to Shopify:",
     unfulfilled: "Unfulfilled", fulfilled: "Fulfilled", partial: "Partial", charged: "Fee",
     helpT: "FAQ", q1: "Where are my customers' files stored?", a1: "Shopify stores them with each order, like any file uploaded on a product page. Dekalo doesn't store them on any server.",
@@ -258,6 +258,8 @@ async function chargeSheet(s) {
 
 /* ---------- producción (órdenes con gang sheets) ---------- */
 const ready = {};
+let focusOrder = null, focusLi = null, autoDone = false;
+try { const u = new URLSearchParams(location.search); focusOrder = u.get("order"); focusLi = u.get("li"); } catch (e) {}
 let filter = "todo", cursor = null, sheets = [], view = "grid", query = "", prod = {}, prodLoaded = false;
 const isPrinted = (s) => !!(prod[s.li.id] && prod[s.li.id].p) || s.ord.displayFulfillmentStatus === "FULFILLED";
 const isPending = (s) => !isPrinted(s);
@@ -308,7 +310,14 @@ async function loadOrders(reset = true) {
     }
     cursor = o.pageInfo.hasNextPage ? o.pageInfo.endCursor : null;
   } catch (e) { showErr(e); }
-  renderOrders(false); renderWelcome(); renderSetup();
+  renderOrders(false); renderWelcome(); renderSetup(); autoFocus();
+}
+function autoFocus() {
+  if (!focusOrder || autoDone) return;
+  const i = sheets.findIndex((s) => numId(s.ord.id) === focusOrder && (!focusLi || numId(s.li.id) === focusLi));
+  if (i < 0) { if (cursor) loadOrders(false); return; }
+  autoDone = true; $("orders").scrollIntoView({ behavior: "smooth", block: "start" });
+  const b = document.querySelector(`[data-dl="${i}"]`); if (b) exportSheet(i, b);
 }
 function statusOf(s) {
   const p = prod[s.li.id] || {};
@@ -319,7 +328,7 @@ function statusOf(s) {
 }
 function visible() {
   const q = query.trim().toLowerCase().replace("#", "");
-  return sheets.map((s, i) => [s, i]).filter(([s]) => (filter === "todo" ? isPending(s) : filter === "hecho" ? isPrinted(s) : true) && (!q || s.ord.name.toLowerCase().replace("#", "").includes(q)));
+  return sheets.map((s, i) => [s, i]).filter(([s]) => focusOrder ? numId(s.ord.id) === focusOrder : (filter === "todo" ? isPending(s) : filter === "hecho" ? isPrinted(s) : true) && (!q || s.ord.name.toLowerCase().replace("#", "").includes(q)));
 }
 function renderOrders(loading) {
   const el = $("orders"); if (!el) return;
@@ -330,6 +339,7 @@ function renderOrders(loading) {
   const empty = !sheets.length ? [t("none"), t("noneS")] : filter === "todo" ? [t("allDone"), t("allDoneS")] : filter === "hecho" ? [t("noneDone"), t("noneDoneS")] : [t("noMatch"), ""];
   el.innerHTML = `<div class="sec-h"><div><h2>${t("ordersT")}</h2><p class="sub">${t("ordersS")}</p></div>${pend.length > 1 ? `<button class="btn ${plan === "taller" ? "pri" : ""}" id="batchBtn" title="${t("batchOnly")}">${ICO.dl} ${t("batch")} (${pend.length})${plan === "taller" ? "" : " 🔒"}</button>` : ""}</div>
    <div class="kpis"><div><span>${t("kPend")}</span><b>${pend.length}</b></div><div><span>${t("kFilm")}</span><b>${fmtLen(filmIn)}</b></div><div><span>${t("kDes")}</span><b>${nDes}</b></div></div>
+   ${focusOrder ? `<div class="focus">${t("focusT")} <b>${esc((sheets.find((s) => numId(s.ord.id) === focusOrder) || { ord: { name: "#" + focusOrder } }).ord.name)}</b> · <a href="#" id="allOrders">${t("focusAll")}</a></div>` : ""}
    <div class="toolbar"><div class="seg" id="fseg">${[["todo", `${t("fTodo")} <em>${pend.length}</em>`], ["hecho", t("fHecho")], ["all", t("all")]].map(([k, l]) => `<button data-f="${k}" class="${filter === k ? "on" : ""}">${l}</button>`).join("")}</div>
      <label class="search">${ICO.search}<input id="q" type="search" placeholder="${t("search")}" value="${esc(query)}" autocomplete="off"></label><span class="sp"></span>
      <div class="seg ic" id="vseg"><button data-v="grid" class="${view === "grid" ? "on" : ""}" title="${t("vGrid")}" aria-label="${t("vGrid")}">${ICO.grid}</button><button data-v="list" class="${view === "list" ? "on" : ""}" title="${t("vList")}" aria-label="${t("vList")}">${ICO.list}</button></div>
@@ -342,6 +352,7 @@ function renderOrders(loading) {
   $("vseg").onclick = (e) => { const b = e.target.closest("[data-v]"); if (b && b.dataset.v !== view) { view = b.dataset.v; try { LS.setItem("dekalo_view", view); } catch (er) {} renderOrders(false); } };
   $("q").oninput = (e) => { query = e.target.value; const pos = e.target.selectionStart; renderOrders(false); const q = $("q"); q.focus(); try { q.setSelectionRange(pos, pos); } catch (er) {} };
   $("refresh").onclick = () => loadOrders();
+  if ($("allOrders")) $("allOrders").onclick = (e) => { e.preventDefault(); focusOrder = null; renderOrders(false); };
   if ($("batchBtn")) $("batchBtn").onclick = (e) => exportAll(e.currentTarget);
   if ($("more")) $("more").onclick = () => loadOrders(false);
   if (!loading) vis.forEach(([s, i]) => drawPreview(s, i));
