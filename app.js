@@ -56,7 +56,7 @@ const L = {
     q4: "What format is the print file?", a4: "Transparent PNG at 300 DPI, at the exact sheet size, ready for your RIP software.",
   },
 };
-let lang = (navigator.language || "es").slice(0, 2) === "en" ? "en" : "es";
+const savedLang = (() => { try { return localStorage.getItem("dekalo_lang"); } catch (e) { return null; } })(); let lang = savedLang || ((new URLSearchParams(location.search).get("locale") || "es").slice(0, 2) === "en" ? "en" : "es");
 const t = (k) => L[lang][k] ?? k;
 
 /* ---------- Shopify ---------- */
@@ -287,6 +287,6 @@ function showErr(e) { $("banner").innerHTML = `<div class="banner err">${t("apiE
 
 /* ---------- inicio ---------- */
 function renderAll() { $("tagline").textContent = t("tagline"); $("langBtn").textContent = lang === "es" ? "EN" : "ES"; document.documentElement.lang = lang; renderPlan(); renderSetup(); renderOrders(false); renderHelp(); }
-$("langBtn").onclick = () => { lang = lang === "es" ? "en" : "es"; renderAll(); };
+$("langBtn").onclick = () => { lang = lang === "es" ? "en" : "es"; try { localStorage.setItem("dekalo_lang", lang); } catch (e) {} renderAll(); };
 renderHelp(); $("tagline").textContent = t("tagline"); $("langBtn").textContent = lang === "es" ? "EN" : "ES";
 loadPlan(); loadSetup(); loadOrders();
