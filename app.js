@@ -32,7 +32,7 @@ const L = {
     s2: "Pon el builder en tu tienda", s2t: "Abre el editor de temas con el bloque ya añadido. Solo dale Guardar.", s2b: "Abrir editor de temas",
     s3: "Pruébalo como cliente", s3t: "Arma una hoja de prueba y añádela al carrito.", s3b: "Ver producto en la tienda",
     w: "Ancho (in)", h: "Largo (in)", p: "Precio", create: "Crear producto", creating: "Creando…", addRow: "+ Tamaño", edit: "Editar producto",
-    ordersT: "Hojas para imprimir", ordersS: "Cada hoja se genera aquí mismo, en tu computadora, a 300 DPI.", pending: "Pendientes", all: "Todas", refresh: "Actualizar", more: "Cargar más",
+    ordersT: "Producción", ordersS: "Tus gang sheets vendidas. Descarga cada hoja a 300 DPI y márcala cuando la imprimas.", kPend: "Hojas por imprimir", kFilm: "Film necesario", kDes: "Diseños por imprimir", fTodo: "Por imprimir", fHecho: "Impresas", search: "Buscar orden #", vGrid: "Cuadrícula", vList: "Lista", stNew: "Nueva", stDown: "Descargada", stPrinted: "Impresa", stShip: "Enviada", mark: "Marcar como impresa", unmark: "Volver a pendiente", markedP: "Hoja marcada como impresa", markedU: "Hoja de vuelta en pendientes", openOrder: "Ver orden en Shopify", allDone: "¡Todo al día!", allDoneS: "No tienes hojas por imprimir. Las nuevas aparecerán aquí.", noneDone: "Todavía no hay hojas impresas", noneDoneS: "Cuando marques una hoja como impresa, aparecerá aquí.", noMatch: "No hay órdenes con ese número", pending: "Pendientes", all: "Todas", refresh: "Actualizar", more: "Cargar más",
     none: "Todavía no hay hojas por imprimir", noneS: "Cuando un cliente compre una gang sheet, aparecerá aquí lista para descargar.",
     designs: "diseños", qty: "Cantidad", download: "Descargar PNG 300 DPI", files: "Archivos", generating: "Generando…", done: "Listo",
     corsErr: "No se pudo leer un archivo del pedido. Abre los archivos y descárgalos manualmente.", apiErr: "No se pudo conectar con Shopify:",
@@ -61,7 +61,7 @@ const L = {
     s2: "Add the builder to your store", s2t: "Opens the theme editor with the block already added. Just click Save.", s2b: "Open theme editor",
     s3: "Test it as a customer", s3t: "Build a test sheet and add it to the cart.", s3b: "View product in store",
     w: "Width (in)", h: "Length (in)", p: "Price", create: "Create product", creating: "Creating…", addRow: "+ Size", edit: "Edit product",
-    ordersT: "Sheets to print", ordersS: "Each sheet is generated right here, on your computer, at 300 DPI.", pending: "Pending", all: "All", refresh: "Refresh", more: "Load more",
+    ordersT: "Production", ordersS: "Your sold gang sheets. Download each sheet at 300 DPI and mark it when printed.", kPend: "Sheets to print", kFilm: "Film needed", kDes: "Designs to print", fTodo: "To print", fHecho: "Printed", search: "Search order #", vGrid: "Grid", vList: "List", stNew: "New", stDown: "Downloaded", stPrinted: "Printed", stShip: "Shipped", mark: "Mark as printed", unmark: "Back to pending", markedP: "Sheet marked as printed", markedU: "Sheet back in pending", openOrder: "Open order in Shopify", allDone: "All caught up!", allDoneS: "No sheets to print. New ones will show up here.", noneDone: "No printed sheets yet", noneDoneS: "When you mark a sheet as printed, it shows up here.", noMatch: "No orders with that number", pending: "Pending", all: "All", refresh: "Refresh", more: "Load more",
     none: "No sheets to print yet", noneS: "When a customer buys a gang sheet, it will show up here ready to download.",
     designs: "designs", qty: "Quantity", download: "Download 300 DPI PNG", files: "Files", generating: "Generating…", done: "Done",
     corsErr: "Couldn't read a file from the order. Open the files and download them manually.", apiErr: "Couldn't connect to Shopify:",
@@ -113,7 +113,7 @@ function proFreeLeft() { return Math.max(0, PRO_FREE_ORDERS - (billed._proFree |
 function monthFee() { const m = new Date(); m.setDate(1); m.setHours(0, 0, 0, 0); return Object.values(billed).filter((b) => b.t >= +m).reduce((a, b) => a + b.f, 0); }
 function renderWelcome() {
   const done = stepsDone(), pct = Math.round(done / 3 * 100);
-  const pend = sheets.filter((s) => s.ord.displayFulfillmentStatus !== "FULFILLED").length;
+  const pend = sheets.filter(isPending).length;
   const since = Date.now() - 30 * 864e5;
   const sold = sheets.filter((s) => +new Date(s.ord.createdAt) >= since).reduce((a, s) => a + s.total, 0);
   const first = (ownerName || "").split(" ")[0];
@@ -256,13 +256,48 @@ async function chargeSheet(s) {
   renderWelcome(); renderOrders(false);
 }
 
-/* ---------- órdenes ---------- */
-let filter = "pending", cursor = null, sheets = [];
-async function loadOrders(reset = true) {
-  if (reset) { cursor = null; sheets = []; renderOrders(true); }
+/* ---------- producción (órdenes con gang sheets) ---------- */
+let filter = "todo", cursor = null, sheets = [], view = "grid", query = "", prod = {}, prodLoaded = false;
+const isPrinted = (s) => !!(prod[s.li.id] && prod[s.li.id].p) || s.ord.displayFulfillmentStatus === "FULFILLED";
+const isPending = (s) => !isPrinted(s);
+const ICO = {
+  dl: '<svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 4v11"/><path d="m7 10 5 5 5-5"/><path d="M5 20h14"/></svg>',
+  ok: '<svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="m5 12 5 5 9-10"/></svg>',
+  ext: '<svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14 4h6v6"/><path d="M20 4 11 13"/><path d="M19 14v5a1 1 0 0 1-1 1H5a1 1 0 0 1-1-1V6a1 1 0 0 1 1-1h5"/></svg>',
+  grid: '<svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2"><rect x="4" y="4" width="7" height="7" rx="1.5"/><rect x="13" y="4" width="7" height="7" rx="1.5"/><rect x="4" y="13" width="7" height="7" rx="1.5"/><rect x="13" y="13" width="7" height="7" rx="1.5"/></svg>',
+  list: '<svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M9 6h11M9 12h11M9 18h11"/><circle cx="4.5" cy="6" r="1"/><circle cx="4.5" cy="12" r="1"/><circle cx="4.5" cy="18" r="1"/></svg>',
+  search: '<svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><circle cx="11" cy="11" r="6.5"/><path d="m20 20-4-4"/></svg>',
+  ref: '<svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20 11a8 8 0 1 0-2.3 5.7"/><path d="M20 5v6h-6"/></svg>',
+};
+function ago(d) {
+  const m = Math.round((Date.now() - +new Date(d)) / 6e4);
   try {
-    const q = filter === "pending" ? "fulfillment_status:unfulfilled" : "";
-    const d = await gql(`query($c:String,$q:String){orders(first:25,after:$c,sortKey:CREATED_AT,reverse:true,query:$q){pageInfo{hasNextPage endCursor} nodes{id name createdAt displayFulfillmentStatus lineItems(first:50){nodes{id name variantTitle quantity originalTotalSet{shopMoney{amount}} customAttributes{key value}}}}}}`, { c: cursor, q });
+    const rtf = new Intl.RelativeTimeFormat(lang === "es" ? "es" : "en", { numeric: "auto" });
+    if (m < 60) return rtf.format(-Math.max(m, 1), "minute");
+    const h = Math.round(m / 60); if (h < 24) return rtf.format(-h, "hour");
+    const dd = Math.round(h / 24); if (dd < 30) return rtf.format(-dd, "day");
+  } catch (e) {}
+  return new Date(d).toLocaleDateString(lang === "es" ? "es-PR" : "en-US", { day: "numeric", month: "short", year: "numeric" });
+}
+const fmtLen = (inch) => (inch >= 12 ? `${(inch / 12).toFixed(1)} ft` : `${Math.round(inch)} in`);
+async function loadProd() {
+  try { const d = await gql(`query{currentAppInstallation{prod:metafield(namespace:"dekalo",key:"prod"){value}}}`); prod = JSON.parse(d.currentAppInstallation.prod?.value || "{}") || {}; } catch (e) { prod = {}; }
+  prodLoaded = true;
+}
+async function saveProd() {
+  if (!instId) return;
+  const cut = Date.now() - 180 * 864e5; for (const k in prod) if (Math.max(prod[k].p || 0, prod[k].d || 0) < cut) delete prod[k];
+  try { await gql(`mutation($m:[MetafieldsSetInput!]!){metafieldsSet(metafields:$m){userErrors{message}}}`, { m: [{ ownerId: instId, namespace: "dekalo", key: "prod", type: "json", value: JSON.stringify(prod) }] }); } catch (e) { console.warn("Dekalo prod", e); }
+}
+function markProd(s, k, on = true) {
+  const e = prod[s.li.id] || (prod[s.li.id] = {}); if (on) e[k] = Date.now(); else delete e[k];
+  saveProd(); renderOrders(false); renderWelcome();
+  if (k === "p") toast(on ? t("markedP") : t("markedU"));
+}
+async function loadOrders(reset = true) {
+  if (reset) { cursor = null; sheets = []; renderOrders(true); if (!prodLoaded) await loadProd(); }
+  try {
+    const d = await gql(`query($c:String){orders(first:50,after:$c,sortKey:CREATED_AT,reverse:true){pageInfo{hasNextPage endCursor} nodes{id name createdAt displayFulfillmentStatus lineItems(first:50){nodes{id name variantTitle quantity originalTotalSet{shopMoney{amount}} customAttributes{key value}}}}}}`, { c: cursor });
     const o = d.orders;
     for (const ord of o.nodes) for (const li of ord.lineItems.nodes) {
       const attrs = Object.fromEntries((li.customAttributes || []).map((a) => [a.key, a.value]));
@@ -274,35 +309,71 @@ async function loadOrders(reset = true) {
   } catch (e) { showErr(e); }
   renderOrders(false); renderWelcome(); renderSetup();
 }
-function stTag(s) { const m = { UNFULFILLED: ["wa", t("unfulfilled")], FULFILLED: ["ok", t("fulfilled")], PARTIALLY_FULFILLED: ["wa", t("partial")] }[s] || ["", s]; return `<span class="tag ${m[0]}">${esc(m[1])}</span>`; }
+function statusOf(s) {
+  const p = prod[s.li.id] || {};
+  if (s.ord.displayFulfillmentStatus === "FULFILLED") return ["ok", t("stShip")];
+  if (p.p) return ["ok", t("stPrinted")];
+  if (p.d) return ["", t("stDown")];
+  return ["wa", t("stNew")];
+}
+function visible() {
+  const q = query.trim().toLowerCase().replace("#", "");
+  return sheets.map((s, i) => [s, i]).filter(([s]) => (filter === "todo" ? isPending(s) : filter === "hecho" ? isPrinted(s) : true) && (!q || s.ord.name.toLowerCase().replace("#", "").includes(q)));
+}
 function renderOrders(loading) {
-  const el = $("orders");
-  el.innerHTML = `<div class="sec-h"><div><h2>${t("ordersT")}</h2><p class="sub">${t("ordersS")}</p></div></div>
-   <div class="toolbar"><div class="seg"><button data-f="pending" class="${filter === "pending" ? "on" : ""}">${t("pending")}</button><button data-f="all" class="${filter === "all" ? "on" : ""}">${t("all")}</button></div><button class="btn" id="refresh">${t("refresh")}</button>${sheets.length > 1 ? `<button class="btn ${plan === "taller" ? "pri" : ""}" id="batchBtn" title="${t("batchOnly")}">${t("batch")} (${sheets.length})${plan === "taller" ? "" : " 🔒"}</button>` : ""}</div>
-   ${loading ? `<div class="skel"></div><div class="skel" style="width:60%;margin-top:8px"></div>` : sheets.length ? `<div class="grid">${sheets.map((s, i) => sheetCard(s, i)).join("")}</div>` : `<div class="empty"><div class="empty-ic"><svg viewBox="0 0 24 24" width="28" height="28" fill="none" stroke="currentColor" stroke-width="1.6"><rect x="3" y="4" width="13" height="13" rx="2"/><rect x="8" y="8" width="13" height="13" rx="2"/></svg></div><b>${t("none")}</b>${t("noneS")}</div>`}
+  const el = $("orders"); if (!el) return;
+  const pend = sheets.filter(isPending);
+  const filmIn = pend.reduce((a, s) => a + (+s.lay.s[1] || 0) * s.li.quantity, 0);
+  const nDes = pend.reduce((a, s) => a + s.lay.i.length * s.li.quantity, 0);
+  const vis = loading ? [] : visible();
+  const empty = !sheets.length ? [t("none"), t("noneS")] : filter === "todo" ? [t("allDone"), t("allDoneS")] : filter === "hecho" ? [t("noneDone"), t("noneDoneS")] : [t("noMatch"), ""];
+  el.innerHTML = `<div class="sec-h"><div><h2>${t("ordersT")}</h2><p class="sub">${t("ordersS")}</p></div>${pend.length > 1 ? `<button class="btn ${plan === "taller" ? "pri" : ""}" id="batchBtn" title="${t("batchOnly")}">${ICO.dl} ${t("batch")} (${pend.length})${plan === "taller" ? "" : " 🔒"}</button>` : ""}</div>
+   <div class="kpis"><div><span>${t("kPend")}</span><b>${pend.length}</b></div><div><span>${t("kFilm")}</span><b>${fmtLen(filmIn)}</b></div><div><span>${t("kDes")}</span><b>${nDes}</b></div></div>
+   <div class="toolbar"><div class="seg" id="fseg">${[["todo", `${t("fTodo")} <em>${pend.length}</em>`], ["hecho", t("fHecho")], ["all", t("all")]].map(([k, l]) => `<button data-f="${k}" class="${filter === k ? "on" : ""}">${l}</button>`).join("")}</div>
+     <label class="search">${ICO.search}<input id="q" type="search" placeholder="${t("search")}" value="${esc(query)}" autocomplete="off"></label><span class="sp"></span>
+     <div class="seg ic" id="vseg"><button data-v="grid" class="${view === "grid" ? "on" : ""}" title="${t("vGrid")}" aria-label="${t("vGrid")}">${ICO.grid}</button><button data-v="list" class="${view === "list" ? "on" : ""}" title="${t("vList")}" aria-label="${t("vList")}">${ICO.list}</button></div>
+     <button class="btn icon" id="refresh" title="${t("refresh")}" aria-label="${t("refresh")}">${ICO.ref}</button></div>
+   ${loading ? `<div class="grid"><div class="skc"></div><div class="skc"></div><div class="skc"></div></div>`
+     : vis.length ? (view === "grid" ? `<div class="grid">${vis.map(([s, i]) => sheetCard(s, i)).join("")}</div>` : `<div class="list">${vis.map(([s, i]) => sheetRow(s, i)).join("")}</div>`)
+     : `<div class="empty"><div class="empty-ic">${filter === "todo" && sheets.length ? ICO.ok : '<svg viewBox="0 0 24 24" width="28" height="28" fill="none" stroke="currentColor" stroke-width="1.6"><rect x="3" y="4" width="13" height="13" rx="2"/><rect x="8" y="8" width="13" height="13" rx="2"/></svg>'}</div><b>${empty[0]}</b>${empty[1]}</div>`}
    ${!loading && cursor ? `<div class="row" style="justify-content:center;margin-top:12px"><button class="btn" id="more">${t("more")}</button></div>` : ""}`;
-  el.querySelector(".seg").onclick = (e) => { const f = e.target.dataset.f; if (f && f !== filter) { filter = f; loadOrders(); } };
+  $("fseg").onclick = (e) => { const b = e.target.closest("[data-f]"); if (b && b.dataset.f !== filter) { filter = b.dataset.f; renderOrders(false); } };
+  $("vseg").onclick = (e) => { const b = e.target.closest("[data-v]"); if (b && b.dataset.v !== view) { view = b.dataset.v; try { LS.setItem("dekalo_view", view); } catch (er) {} renderOrders(false); } };
+  $("q").oninput = (e) => { query = e.target.value; const pos = e.target.selectionStart; renderOrders(false); const q = $("q"); q.focus(); try { q.setSelectionRange(pos, pos); } catch (er) {} };
   $("refresh").onclick = () => loadOrders();
   if ($("batchBtn")) $("batchBtn").onclick = (e) => exportAll(e.currentTarget);
   if ($("more")) $("more").onclick = () => loadOrders(false);
-  if (!loading) sheets.forEach((s, i) => drawPreview(s, i));
+  if (!loading) vis.forEach(([s, i]) => drawPreview(s, i));
+}
+function thumbs(s) {
+  const keys = [...new Set(s.lay.i.map((x) => x.f))];
+  return `<div class="thumbs">${keys.slice(0, 5).map((k) => { const u = s.files[k] || ""; return `<a href="${esc(u || "#")}" target="_blank" rel="noopener" title="${esc(k)}">${u ? `<img src="${esc(u)}" alt="${esc(k)}" loading="lazy">` : ""}</a>`; }).join("")}${keys.length > 5 ? `<span>+${keys.length - 5}</span>` : ""}</div>`;
 }
 function sheetCard(s, i) {
-  const [w, h] = s.lay.s; const keys = [...new Set(s.lay.i.map((x) => x.f))]; const b = billed[s.li.id];
-  return `<div class="sheet"><div class="pv"><canvas id="pv${i}"></canvas></div><div class="meta">
-   <div class="t"><a href="#" data-order="${numId(s.ord.id)}">${esc(s.ord.name)}</a>${stTag(s.ord.displayFulfillmentStatus)}</div>
-   <div class="mu">${w} × ${h} in · ${s.lay.i.length} ${t("designs")} · ${t("qty")}: ${s.li.quantity} · ${money(s.total)}</div>
-   <div class="mu">${new Date(s.ord.createdAt).toLocaleDateString(lang === "es" ? "es-PR" : "en-US", { day: "numeric", month: "short", year: "numeric" })}${b ? ` · ${t("charged")}: ${money(b.f)}` : ""}</div>
+  const [w, h] = s.lay.s; const b = billed[s.li.id]; const st = statusOf(s); const pr = isPrinted(s);
+  return `<div class="sheet ${pr ? "done" : ""}"><div class="pv"><canvas id="pv${i}"></canvas><span class="chip">${w}×${h} in</span>${s.li.quantity > 1 ? `<span class="chip q">×${s.li.quantity}</span>` : ""}</div>
+   <div class="meta"><div class="t"><a href="#" data-order="${numId(s.ord.id)}">${esc(s.ord.name)}</a><span class="tag ${st[0]}">${st[1]}</span></div>
+   <div class="mu">${ago(s.ord.createdAt)} · ${s.lay.i.length} ${t("designs")} · ${money(s.total)}${b ? ` · ${t("charged")} ${money(b.f)}` : ""}</div>
+   ${thumbs(s)}
    <div class="prog" id="pg${i}"><i></i></div><div class="err" id="er${i}"></div>
-   <div class="row"><button class="btn pri" data-dl="${i}">${t("download")}</button><button class="btn" data-files="${i}">${t("files")} (${keys.length})</button></div></div>
-   <div class="files" id="fl${i}">${keys.map((k) => `<a href="${esc(s.files[k] || "#")}" target="_blank" rel="noopener">${esc(k)}</a>`).join("")}</div></div>`;
+   <div class="acts"><button class="btn pri grow" data-dl="${i}">${ICO.dl} ${t("download")}</button><button class="btn icon ${pr ? "on" : ""}" data-pr="${i}" title="${pr ? t("unmark") : t("mark")}" aria-label="${pr ? t("unmark") : t("mark")}">${ICO.ok}</button><button class="btn icon" data-order="${numId(s.ord.id)}" title="${t("openOrder")}" aria-label="${t("openOrder")}">${ICO.ext}</button></div></div></div>`;
+}
+function sheetRow(s, i) {
+  const [w, h] = s.lay.s; const st = statusOf(s); const pr = isPrinted(s);
+  return `<div class="lrow ${pr ? "done" : ""}"><div class="lpv"><canvas id="pv${i}"></canvas></div>
+   <div class="lmain"><a href="#" data-order="${numId(s.ord.id)}">${esc(s.ord.name)}</a><span class="mu">${w}×${h} in${s.li.quantity > 1 ? ` ×${s.li.quantity}` : ""} · ${s.lay.i.length} ${t("designs")} · ${ago(s.ord.createdAt)}</span></div>
+   <span class="tag ${st[0]}">${st[1]}</span>
+   <button class="btn pri" data-dl="${i}">${ICO.dl}<span class="hide-s">${t("download")}</span></button>
+   <button class="btn icon ${pr ? "on" : ""}" data-pr="${i}" title="${pr ? t("unmark") : t("mark")}" aria-label="${pr ? t("unmark") : t("mark")}">${ICO.ok}</button>
+   <div class="prog" id="pg${i}"><i></i></div><div class="err" id="er${i}"></div></div>`;
 }
 document.addEventListener("click", (e) => {
   const o = e.target.closest("[data-order]"); if (o) { e.preventDefault(); goAdmin(`orders/${o.dataset.order}`); return; }
   const d = e.target.closest("[data-dl]"); if (d) { exportSheet(+d.dataset.dl, d); return; }
-  const f = e.target.closest("[data-files]"); if (f) { $("fl" + f.dataset.files).classList.toggle("show"); return; }
+  const p = e.target.closest("[data-pr]"); if (p) { const s = sheets[+p.dataset.pr]; markProd(s, "p", !(prod[s.li.id] && prod[s.li.id].p)); return; }
   if (e.target.closest("#seePlans")) { e.preventDefault(); $("plan").scrollIntoView({ behavior: "smooth" }); }
 });
+try { view = LS.getItem("dekalo_view") || "grid"; } catch (e) {}
 
 /* ---------- motor de render ---------- */
 const imgCache = new Map();
@@ -354,9 +425,10 @@ async function exportSheet(i, btn) {
     setTimeout(() => URL.revokeObjectURL(a.href), 60000);
     toast(`${t("done")}: ${name}`);
     chargeSheet(s);
+    markProd(s, "d");
   } catch (e) {
     er.textContent = e && e.message === "img" ? t("corsErr") : (e.message || String(e));
-    $("fl" + i).classList.add("show");
+    $("fl" + i)?.classList.add("show");
   } finally { btn.disabled = false; btn.textContent = old; setTimeout(() => pg.classList.remove("show"), 800); }
 }
 
