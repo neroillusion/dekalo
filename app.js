@@ -127,9 +127,22 @@ async function createProduct() {
     });
     const errs = d.productSet.userErrors;
     if (errs.length) throw new Error(errs.map((e) => e.message).join("; "));
-    toast(t("s1done") + " DTF Gang Sheet");
+    await publishOnline(d.productSet.product.id);
+        toast(t("s1done") + " DTF Gang Sheet");
     await loadSetup();
   } catch (e) { showErr(e); b.disabled = false; b.textContent = t("create"); }
+}
+
+/* Publica el producto en la Tienda online. */
+async function publishOnline(productId) {
+  try {
+    const p = await gql(`query{publications(first:20){nodes{id name catalog{title}}}}`);
+    const pubs = p.publications.nodes;
+    const online = pubs.find((x) => /online store|tienda online/i.test(x.name || (x.catalog && x.catalog.title) || "")) || pubs[0];
+    if (!online) return;
+    const r = await gql(`mutation($id:ID!,$in:[PublicationInput!]!){publishablePublish(id:$id,input:$in){userErrors{message}}}`, { id: productId, in: [{ publicationId: online.id }] });
+    const e = r.publishablePublish.userErrors; if (e.length) console.warn("Dekalo publish:", e);
+  } catch (e) { console.warn("Dekalo: no se pudo publicar", e); }
 }
 
 /* ---------- planes (Shopify App Pricing, sin servidor) ---------- */
