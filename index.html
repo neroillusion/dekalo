@@ -1,0 +1,102 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<meta name="shopify-api-key" content="9699d3ab216cb40e3635e61f083fca30">
+<script src="https://cdn.shopify.com/shopifycloud/app-bridge.js"></script>
+<title>Dekalo</title>
+<link rel="icon" href="./Dekalo_Favicon.svg" type="image/svg+xml">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@500;700&display=swap" rel="stylesheet">
+<style>
+:root{--bg:#f1f1f1;--card:#fff;--tx:#1a1a1a;--mu:#616161;--ln:#e3e3e3;--ink:#1a1a1a;--ok:#0c7a43;--wa:#8a6100;--ba:#b3261e}
+*{box-sizing:border-box}
+body{margin:0;background:var(--bg);color:var(--tx);font:14px/1.45 -apple-system,BlinkMacSystemFont,"San Francisco","Segoe UI",Roboto,"Helvetica Neue",sans-serif}
+.wrap{max-width:1040px;margin:0 auto;padding:20px 16px 60px}
+.head{display:flex;align-items:center;gap:12px;margin-bottom:18px}
+.logo{width:36px;height:36px;border-radius:10px;background:#0b0b0b;display:flex;align-items:center;justify-content:center;flex:none}.logo svg{width:20px;height:20px}
+h1,h2,.card h2{font-family:"Space Grotesk",-apple-system,sans-serif}
+.made{display:flex;align-items:center;justify-content:center;gap:8px;color:var(--mu);font-size:12px;margin-top:8px}.made b{font-family:"Space Grotesk",sans-serif;color:var(--tx);letter-spacing:.04em}
+.head h1{font-size:20px;margin:0;letter-spacing:-.01em}
+.head p{margin:0;color:var(--mu);font-size:13px}
+.head .sp{flex:1}
+.card{background:var(--card);border-radius:12px;box-shadow:0 1px 0 #0000000d,0 0 0 1px #0000000a;padding:16px;margin-bottom:16px}
+.card h2{font-size:15px;margin:0 0 4px}
+.card .sub{color:var(--mu);margin:0 0 12px;font-size:13px}
+.steps{display:grid;gap:10px}
+.step{display:flex;gap:12px;align-items:flex-start;padding:12px;border:1px solid var(--ln);border-radius:10px}
+.num{width:26px;height:26px;border-radius:50%;background:#e8e8e8;display:flex;align-items:center;justify-content:center;font-weight:700;font-size:12px;flex:none}
+.step.done .num{background:var(--ink);color:#fff}
+.step .body{flex:1;min-width:0}
+.step b{display:block;margin-bottom:2px}
+.step .txt{color:var(--mu);font-size:13px}
+.btn{display:inline-flex;align-items:center;justify-content:center;gap:6px;height:32px;padding:0 12px;border-radius:8px;border:1px solid #d4d4d4;background:#fff;color:var(--tx);font:inherit;font-weight:600;font-size:13px;cursor:pointer;white-space:nowrap;box-shadow:0 1px 0 #0000000d}
+.btn:hover{background:#f7f7f7}
+.btn.pri{background:var(--ink);border-color:var(--ink);color:#fff}
+.btn.pri:hover{background:#333}
+.btn:disabled{opacity:.5;cursor:default}
+.row{display:flex;gap:8px;flex-wrap:wrap;align-items:center}
+table{border-collapse:collapse;width:100%;max-width:460px;margin:8px 0}
+td,th{padding:4px 6px;text-align:left;font-size:13px}
+th{color:var(--mu);font-weight:600}
+td input{width:100%;height:30px;border:1px solid #cfcfcf;border-radius:7px;padding:0 8px;font:inherit}
+.tag{display:inline-flex;align-items:center;gap:5px;padding:2px 8px;border-radius:99px;font-size:12px;font-weight:600;background:#ececec;color:#3a3a3a}
+.tag.ok{background:#e3f1df;color:var(--ok)}.tag.wa{background:#fff1d6;color:var(--wa)}
+.toolbar{display:flex;gap:8px;align-items:center;flex-wrap:wrap;margin-bottom:12px}
+.seg{display:inline-flex;border:1px solid #d4d4d4;border-radius:8px;overflow:hidden}
+.seg button{border:0;background:#fff;padding:6px 12px;font:inherit;font-size:13px;cursor:pointer;color:var(--mu)}
+.seg button.on{background:var(--ink);color:#fff}
+.grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(300px,1fr));gap:12px}
+.sheet{border:1px solid var(--ln);border-radius:12px;overflow:hidden;display:flex;flex-direction:column;background:#fff}
+.pv{background:repeating-conic-gradient(#e9e9e9 0 25%,#fafafa 0 50%) 0 0/14px 14px;display:flex;align-items:center;justify-content:center;padding:14px;min-height:180px;border-bottom:1px solid var(--ln)}
+.pv canvas{max-width:100%;max-height:300px;box-shadow:0 0 0 1px #0000001f;background:transparent}
+.meta{padding:12px;display:grid;gap:6px}
+.meta .t{display:flex;justify-content:space-between;align-items:center;gap:8px}
+.meta a{color:var(--tx);font-weight:700;text-decoration:none}
+.meta a:hover{text-decoration:underline}
+.mu{color:var(--mu);font-size:13px}
+.files{display:none;padding:0 12px 12px;font-size:12px}
+.files.show{display:grid;gap:4px}
+.files a{color:#303030;word-break:break-all}
+.prog{height:6px;background:#eee;border-radius:99px;overflow:hidden;display:none}
+.prog.show{display:block}
+.prog i{display:block;height:100%;width:0;background:var(--ink);transition:width .15s}
+.empty{text-align:center;padding:40px 16px;color:var(--mu)}
+.empty b{display:block;color:var(--tx);font-size:15px;margin-bottom:4px}
+.banner{padding:12px 14px;border-radius:10px;background:#f4f4f4;border:1px solid var(--ln);margin-bottom:16px;font-size:13px}
+.banner.err{background:#fdecea;border-color:#f5c2bd;color:#6b1a14}
+.err{color:var(--ba);font-size:12px}
+details summary{cursor:pointer;font-weight:600}
+details p{color:var(--mu);margin:6px 0 0}
+.plans{display:grid;grid-template-columns:repeat(auto-fit,minmax(220px,1fr));gap:12px}
+.pl{border:1px solid var(--ln);border-radius:12px;padding:14px}
+.pl.on{border-color:var(--ink);box-shadow:0 0 0 1px var(--ink)}
+.pl-h{display:flex;justify-content:space-between;align-items:center;margin-bottom:6px}
+.pl-h b{font-family:"Space Grotesk",sans-serif;font-size:17px}
+.pl-p{margin-bottom:10px}.pl-p .big{font-family:"Space Grotesk",sans-serif;font-size:28px;font-weight:700}
+.pl ul{list-style:none;margin:0;padding:0;font-size:13px;display:grid;gap:6px}
+.pl li::before{content:"✓ ";font-weight:700}
+.pl li.neg::before{content:"• "}.pl li.neg{color:var(--mu)}
+.skel{height:14px;border-radius:6px;background:linear-gradient(90deg,#eee,#f6f6f6,#eee);background-size:200% 100%;animation:sk 1.2s infinite}
+@keyframes sk{to{background-position:-200% 0}}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <div class="head">
+    <div class="logo"><svg viewBox="0 0 159 159" width="20" height="20" aria-hidden="true"><path fill="#ffffff" d="M21 0L97 0C108.6 0 118 9.4 118 21L118 55L145 55C152.73 55 159 61.27 159 69L159 145C159 152.73 152.73 159 145 159L69 159C61.27 159 55 152.73 55 145L55 118L21 118C9.4 118 0 108.6 0 97L0 21C0 9.4 9.4 0 21 0ZM21 14C17.13 14 14 17.13 14 21L14 97C14 100.87 17.13 104 21 104L55 104L55 69C55 61.27 61.27 55 69 55L104 55L104 21C104 17.13 100.87 14 97 14ZM55 104L55 118L118 118L118 55L104 55L104 104Z"/></svg></div>
+    <div><h1>Dekalo</h1><p id="tagline">Builder de gang sheets para tu tienda</p></div>
+    <span class="sp"></span>
+    <button class="btn" id="langBtn">EN</button>
+  </div>
+  <div id="banner"></div>
+  <section class="card" id="plan"></section>
+  <section class="card" id="setup"></section>
+  <section class="card" id="orders"></section>
+  <section class="card" id="help"></section>
+  <div class="made"><svg viewBox="0 0 159 159" width="14" height="14" aria-hidden="true"><path fill="#616161" d="M21 0L97 0C108.6 0 118 9.4 118 21L118 55L145 55C152.73 55 159 61.27 159 69L159 145C159 152.73 152.73 159 145 159L69 159C61.27 159 55 152.73 55 145L55 118L21 118C9.4 118 0 108.6 0 97L0 21C0 9.4 9.4 0 21 0ZM21 14C17.13 14 14 17.13 14 21L14 97C14 100.87 17.13 104 21 104L55 104L55 69C55 61.27 61.27 55 69 55L104 55L104 21C104 17.13 100.87 14 97 14ZM55 104L55 118L118 118L118 55L104 55L104 104Z"/></svg> <span><b>DEKALO</b> · Preparado por Nero Illusion</span></div>
+</div>
+<script type="module" src="./app.js?v=1"></script>
+</body>
+</html>
