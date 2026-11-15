@@ -104,6 +104,23 @@ details p{color:var(--mu);margin:8px 0 0}
 @keyframes sk{to{background-position:-200% 0}}
 .fade{animation:fd .4s ease both}@keyframes fd{from{opacity:0;transform:translateY(6px)}}
 @media (max-width:760px){.stats{grid-template-columns:repeat(2,1fr)}.hero h1{font-size:24px}.ring{width:76px;height:76px}.ring>div{width:62px;height:62px}.help-grid{grid-template-columns:1fr}}
+/* producción */
+.kpis{display:grid;grid-template-columns:repeat(3,1fr);gap:10px;margin-bottom:14px}.kpis>div{background:#f6f6f5;border-radius:12px;padding:12px 14px;display:flex;flex-direction:column;gap:2px}.kpis span{font-size:12px;color:var(--mu)}.kpis b{font:700 24px "Space Grotesk",sans-serif}
+.seg button em{font-style:normal;font-size:11px;background:#e4e4e2;border-radius:99px;padding:1px 6px;margin-left:4px}.seg button.on em{background:var(--ink);color:#fff}
+.search{display:flex;align-items:center;gap:6px;height:34px;padding:0 10px;border:1px solid #d6d6d4;border-radius:10px;background:#fff;min-width:200px;color:var(--mu)}.search:focus-within{outline:2px solid var(--ink);outline-offset:-1px}.search input{border:0;outline:0;font:inherit;width:100%;background:transparent;color:var(--tx)}
+.seg.ic button{padding:6px 9px;display:flex;align-items:center}
+.btn.icon{width:34px;padding:0;flex:none}.btn.icon.on{background:var(--ink);color:#fff;border-color:var(--ink)}.btn.grow{flex:1}
+.pv{position:relative}.chip{position:absolute;left:10px;top:10px;background:#0b0b0bd9;color:#fff;font:700 11px "Space Grotesk",sans-serif;padding:3px 9px;border-radius:99px}.chip.q{left:auto;right:10px}
+.thumbs{display:flex;gap:6px;align-items:center;min-height:34px}.thumbs a{width:34px;height:34px;border-radius:8px;overflow:hidden;background:repeating-conic-gradient(#ececea 0 25%,#fafaf9 0 50%) 0 0/8px 8px;border:1px solid var(--ln);display:block}.thumbs img{width:100%;height:100%;object-fit:contain}.thumbs span{font-size:12px;color:var(--mu)}
+.acts{display:flex;gap:6px;margin-top:2px}
+.sheet.done .pv{filter:grayscale(1);opacity:.7}
+.list{display:grid;gap:8px}.lrow{display:grid;grid-template-columns:64px 1fr auto auto auto;gap:12px;align-items:center;border:1px solid var(--ln);border-radius:12px;padding:8px 10px;background:#fff}.lrow.done{background:#fafaf9}.lrow.done .lpv{filter:grayscale(1);opacity:.7}
+.lpv{width:64px;height:64px;border-radius:8px;background:repeating-conic-gradient(#ececea 0 25%,#fafaf9 0 50%) 0 0/8px 8px;display:flex;align-items:center;justify-content:center;overflow:hidden}.lpv canvas{max-width:58px;max-height:58px}
+.lmain{display:flex;flex-direction:column;min-width:0}.lmain a{font:700 15px "Space Grotesk",sans-serif;color:var(--tx);text-decoration:none}.lmain a:hover{text-decoration:underline}
+.lrow .prog,.lrow .err{grid-column:1/-1}
+.grid .pv{min-height:0;padding:14px}.grid .pv canvas{max-height:210px}
+.skc{height:320px;border-radius:14px;background:linear-gradient(90deg,#eee,#f6f6f6,#eee);background-size:200% 100%;animation:sk 1.2s infinite}
+@media (max-width:760px){.kpis b{font-size:18px}.lrow{grid-template-columns:52px 1fr auto auto}.lrow .tag{display:none}.hide-s{display:none}.search{min-width:0;flex:1}}
 </style>
 </head>
 <body>
@@ -122,6 +139,6 @@ details p{color:var(--mu);margin:8px 0 0}
   <section class="card fade" id="help"></section>
   <div class="made"><svg viewBox="0 0 159 159" width="14" height="14" aria-hidden="true"><path fill="#6b6b6b" d="M21 0L97 0C108.6 0 118 9.4 118 21L118 55L145 55C152.73 55 159 61.27 159 69L159 145C159 152.73 152.73 159 145 159L69 159C61.27 159 55 152.73 55 145L55 118L21 118C9.4 118 0 108.6 0 97L0 21C0 9.4 9.4 0 21 0ZM21 14C17.13 14 14 17.13 14 21L14 97C14 100.87 17.13 104 21 104L55 104L55 69C55 61.27 61.27 55 69 55L104 55L104 21C104 17.13 100.87 14 97 14ZM55 104L55 118L118 118L118 55L104 55L104 104Z"/></svg> <span><b>DEKALO</b> · Preparado por Nero Illusion</span></div>
 </div>
-<script type="module" src="./app.js?v=5"></script>
+<script type="module" src="./app.js?v=6"></script>
 </body>
 </html>
