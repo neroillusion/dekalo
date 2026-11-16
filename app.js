@@ -456,7 +456,7 @@ async function exportSheet(i, btn) {
 /* ---------- ayuda ---------- */
 function renderHelp() {
   $("help").innerHTML = `<div class="help-grid"><div><h2>${t("helpT")}</h2>${[1, 2, 3, 4, 5].map((n) => `<details><summary>${t("q" + n)}</summary><p>${t("a" + n)}</p></details>`).join("")}</div>
-   <div class="contact"><div class="logo sm">${LOGO}</div><b>${t("contactT")}</b><p>${t("contactS")}</p><a class="btn" href="mailto:info@neroillusion.com?subject=Dekalo" target="_blank" rel="noopener">${t("contactB")}</a></div></div>`;
+   <div class="contact"><div class="logo sm">${LOGO}</div><b>${t("contactT")}</b><p>${t("contactS")}</p><a class="btn" href="https://dekalo-4aqstoyt.myshopify.com/pages/support" target="_blank" rel="noopener">${t("contactB")}</a></div></div>`;
 }
 function showErr(e) { $("banner").innerHTML = `<div class="banner err">${t("apiErr")} ${esc(e.message || e)}</div>`; }
 const LOGO = document.querySelector(".logo")?.innerHTML || "";
@@ -466,3 +466,8 @@ function renderAll() { $("tagline").textContent = t("tagline"); $("langBtn").tex
 $("langBtn").onclick = () => { lang = lang === "es" ? "en" : "es"; try { LS.setItem("dekalo_lang", lang); } catch (e) {} renderAll(); };
 renderHelp(); renderWelcome(); $("tagline").textContent = t("tagline"); $("langBtn").textContent = lang === "es" ? "EN" : "ES"; document.documentElement.lang = lang;
 loadPlan(); loadSetup(); loadOrders();
+
+/* ---------- sesión verificada (session token -> backend) ---------- */
+const BACKEND = "https://dekalo.divine-dust-049c.workers.dev";
+async function verifySession() { try { const tok = await SB().idToken(); await fetch(BACKEND + "/api/session", { headers: { Authorization: "Bearer " + tok } }); } catch (e) { console.warn("Dekalo: sesión", e); } }
+verifySession();
