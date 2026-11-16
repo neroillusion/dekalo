@@ -12,7 +12,7 @@ const RATES = { free: 0, pro: 0, taller: 0 }, PRO_FREE_ORDERS = 0;
 // Hojas que se pueden descargar por mes en cada plan.
 const LIMITS = { free: 150, pro: 500, taller: Infinity };
 // Ponlo en true cuando los planes estén creados en el Partner Dashboard: sin plan activo no se descarga.
-const PLANS_LIVE = false;
+const PLANS_LIVE = true;
 // Dirección del puente de cobro por uso (App Events API). Vacío = solo se registra en el panel.
 const USAGE_ENDPOINT = "";
 const PLANS = [
